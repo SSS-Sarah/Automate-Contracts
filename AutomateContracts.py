@@ -5,12 +5,14 @@
 #from docx import Document
 from tkinter import Tk, Label, Entry, Button, messagebox
 
+from PyPDF2 import DocumentInformation
+
 # creates a custom contract based on input
 def create_contract(parent_name, student_name, rate_per_session, num_of_subjects, subject_names):
     template_doc = "HLL Parent-Tutor Agreement Template.docx"  # template file name
     print("Found template")
 
-    document = Document(template_doc)
+    document = DocumentInformation(template_doc)
 
     # Find and replace placeholder text in paragraphs
     for paragraph in document.paragraphs:
@@ -71,7 +73,7 @@ student_name_entry = Entry(window)
 student_name_entry.grid(row=1, column=1)
 
 # Rate per session input
-rate_label = Label(window, text="Parent name:")
+rate_label = Label(window, text="Rate per session:")
 rate_label.grid(row=2, column=0)
 rate_entry = Entry(window)
 rate_entry.grid(row=2, column=1)
@@ -88,8 +90,9 @@ subject_label.grid(row=4, column=0)
 
 # Create subjectName entry fields based on num_of_subjects input
 subject_entries = [] # list to store the names of subjects
-subject_num = int(num_of_subjects_entry.get()) # gets the input for numSubjects
+subject_num = int(num_of_subjects_entry.get() or 0) # if empty string, sets 0 as default
 
+# once we have subject num, this should trigger the creation of subject fields. 
 for i in range(1, subject_num + 1):
     subject_label = Label(window, text=f"Subject {i}:")
     subject_label.grid(row=4 + i, column=0)
