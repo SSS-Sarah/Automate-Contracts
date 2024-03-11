@@ -1,34 +1,27 @@
-# pip install docx
-# pip install Document
-# tkinter is included as a library in latest python builds
-
-#from docx import Document
+# pip install python-docx
+from docx import Document
 from tkinter import Tk, Label, Entry, Button, messagebox
-
-from PyPDF2 import DocumentInformation
 
 # creates a custom contract based on input
 def create_contract(parent_name, student_name, rate_per_session, num_of_subjects, subject_names):
-    template_doc = "HLL Parent-Tutor Agreement Template.docx"  # template file name
-    print("Found template")
-
-    document = DocumentInformation(template_doc)
-
+    template_doc = Document("HLL Parent-Tutor Agreement Template.docx")  # template file name
+    print("Template found")
+    
     # Find and replace placeholder text in paragraphs
-    for paragraph in document.paragraphs:
+    for paragraph in template_doc.paragraphs:
         paragraph.text = paragraph.text.replace("[PARENT_NAME]", parent_name)
         paragraph.text = paragraph.text.replace("[STUDENT_NAME]", student_name)
         paragraph.text = paragraph.text.replace("[PAYMENT_RATE]", str(rate_per_session))
 
         # Replace subject placeholders with a loop
         if "[SUBJECTS]" in paragraph.text:
-            subject_list = "" #creates a list to store names of subjects/topics
-        for i, subject in enumerate(subject_names):
-            subject_list += f"\n  * {subject}"
-        paragraph.text = paragraph.text.replace("[SUBJECTS]", subject_list)
+            subject_list = []
+            for i, subject_name in enumerate(subject_names):
+                subject_list.append(f"\n  * {subject_name}")
+            paragraph.text = paragraph.text.replace("[SUBJECTS]", ''.join(subject_list))
 
     # Save the document in the same directory
-    document.save(f"{student_name}_contract.docx") # script ends here
+    template_doc.save(f"{student_name}_contract.docx") # script ends here
     print("Contract created successfully.")
 
 
@@ -54,7 +47,24 @@ def get_info_and_create_contract():
     for subject_entry in subject_entries:
         subject_entry.delete(0, 'end')
 
-
+# Creates subject fields for user input
+def create_subject_fields():
+    
+    global subject_num # global declaration to access it inside function
+    
+    # if subjectNum is changed, this clears existing fields and entries list.
+    for subject_entry in subject_entries:
+        subject_entry.destroy()
+    subject_entries.clear()
+    
+    subject_num = int(num_of_subjects_entry.get() or 0) # rereading
+    
+    for i in range(1, subject_num + 1):
+        subject_label = Label(window, text=f"Subject {i}:")
+        subject_label.grid(row=6 + i, column=0)
+        subject_entry = Entry(window)
+        subject_entry.grid(row=6 + i, column=1)
+        subject_entries.append(subject_entry)
 
 # Create the GUI elements
 window = Tk()
@@ -84,25 +94,15 @@ num_of_subjects_label.grid(row=3, column=0)
 num_of_subjects_entry = Entry(window)
 num_of_subjects_entry.grid(row=3, column=1)
 
-# Label for subject name entries
-subject_label = Label(window, text="Subject Names:")
-subject_label.grid(row=4, column=0)
-
-# Create subjectName entry fields based on num_of_subjects input
-subject_entries = [] # list to store the names of subjects
 subject_num = int(num_of_subjects_entry.get() or 0) # if empty string, sets 0 as default
+subject_entries = [] # list to store the names of subjects
 
-# once we have subject num, this should trigger the creation of subject fields. 
-for i in range(1, subject_num + 1):
-    subject_label = Label(window, text=f"Subject {i}:")
-    subject_label.grid(row=4 + i, column=0)
-    subject_entry = Entry(window)
-    subject_entry.grid(row=4 + i, column=1)
-    subject_entries.append(subject_entry)
+# Trigger the creation of subject fields
+subject_fields_button = Button(window, text="Add Subject names below", command=create_subject_fields)
+subject_fields_button.grid(row=5, column=0)
 
-
-# Create button
-button = Button(window, text="Create Contract", command=get_info_and_create_contract)
-button.grid(row=5, columnspan=2)
+# Create generate button
+create_contract_button = Button(window, text="Create Contract", command=get_info_and_create_contract)
+create_contract_button.grid(row= 50 + subject_num, columnspan=2)
 
 window.mainloop()
